@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>PageSpeedAPI</title>
+    <!-- to make coding much easier and simpler, use jquery -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+    <!-- to make a nice and cool web page use this css  -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+    <script>
+      $(document).ready(function(){
+        //the api key required to request page insights
+        let google_api_key = "AIzaSyBSQoWPI9OwXicFF4y3c3wdvahvYfBr9O0";
+
+        /**
+        asynchronous request to https://www.googleapis.com/pagespeedonline/v5/runPagespeed
+        @params url - url to be check in page speed online. It must be a valid url i.e. https://w3schools.com
+        */
+        function checkPage(url){
+          //before requesting, we must notify the user to wait for a moment as it make take some time.
+          $("#btn-check-page").text("loading, please wait.");
+          clearFields();
+
+          //start requesting
+          $.ajax({
+            type:"GET",
+            url:"https://www.googleapis.com/pagespeedonline/v5/runPagespeed",
+            data:{url:url,key:google_api_key},
+            cache:false,
+            dataType:"json",
+            success:function(response){
+              //when the result is finish and is success, this function will run
+              $("#btn-check-page").text("Check");
+              $("#json-response").html( JSON.stringify(response, null, 2));
+
+              $("#txt-page-url").text(response.loadingExperience['initial_url']);
+
+              //in some pages, loadingExperience.metrics does not exist.
+              if(response.loadingExperience.metrics != undefined){
+                $("#txt-first-contentful-paint").text(response.loadingExperience.metrics.FIRST_CONTENTFUL_PAINT_MS.category);
+                $("#txt-first-input-delay").text(response.loadingExperience.metrics.FIRST_INPUT_DELAY_MS.category);
+              }
+
+              $("#txt-lfirst-contentful-paint").text(response.lighthouseResult.audits['first-contentful-paint'].displayValue);
+              $("#txt-speed-index").text(response.lighthouseResult.audits['speed-index'].displayValue);
+              $("#txt-time-to-interactive").text(response.lighthouseResult.audits['interactive'].displayValue);
+              $("#txt-first-meaningful-paint").text(response.lighthouseResult.audits['first-meaningful-paint'].displayValue);
+              $("#txt-first-cpu-idle").text(response.lighthouseResult.audits['first-cpu-idle'].displayValue);
+              $("#txt-estimated-input-latency").text(response.lighthouseResult.audits['estimated-input-latency'].displayValue);
+
+
+            },
+            error(){
+              //if an invalid url is entered this function will run instead of success.
+              alert("an error occured");
+              $("#btn-check-page").text("Check");
+            }
+          });
+        }
+
+        //clear all fields to avoid mis information.
+        function clearFields(){
+          $("#txt-lfirst-contentful-paint").text('');
+          $("#txt-speed-index").text('');
+          $("#txt-time-to-interactive").text('');
+          $("#txt-first-meaningful-paint").text('');
+          $("#txt-first-cpu-idle").text('');
+          $("#txt-estimated-input-latency").text('');
+          $("#txt-first-contentful-paint").text('');
+          $("#txt-first-input-delay").text('');
+          $("#txt-page-url").text('');
+        }
+
+        $("#btn-check-page").click(function(){
+          checkPage($("#input-page-url").val());
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <div class='container'>
+      <div>
+        <!-- input -->
+        <h3> Page To Check </h3>
+          <input placeholder="http://w3schools.com" class='form-control' id='input-page-url'>
+          <p class='text-muted'>ensure to add http:// or https:// to your urls</p>
+          <button id='btn-check-page' class='btn btn-primary'>Check</button>
+      </div>
+      <div>
+        <!-- response -->
+        <div class='mt-5'>
+          <h4>PageSpeed Insights API Result</h4>
+          <p class='text-capitalized'>page tested: <span id='txt-page-url'></span></p>
+          <h5>Chrome User Experience Report Results</h5>
+          <p class='text-capitalized'>first contentful paint: <span id='txt-first-contentful-paint'></span></p>
+          <p class='text-capitalized'>first input delay: <span id='txt-first-input-delay'></span></p>
+          <h5>Lighthouse Results</h5>
+          <p class='text-capitalized'>first contentful paint: <span id='txt-lfirst-contentful-paint'></span></p>
+          <p class='text-capitalized'>speed index: <span id='txt-speed-index'></span></p>
+          <p class='text-capitalized'>time to interactive: <span id='txt-time-to-interactive'></span></p>
+          <p class='text-capitalized'>first meaningful paint: <span id='txt-first-meaningful-paint'></span></p>
+          <p class='text-capitalized'>first cpu idle: <span id='txt-first-cpu-idle'></span></p>
+          <p class='text-capitalized'>estimated input latency: <span id='txt-estimated-input-latency'></span></p>
+        </div>
+
+        <pre id='json-response' class='p-4 mt-5' style='background:#efefef'>
+          //json response
+        </pre>
+      </div>
+    </div>
+  </body>
+</html>
